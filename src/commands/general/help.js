@@ -31,6 +31,13 @@ module.exports = {
       inline: false
     });
 
+    // Business Toolkits - Available to All
+    embed.addFields({
+      name: '🛠️ Business Advisory Toolkits',
+      value: '`/toolkits` - **Interactive menu** for all toolkits\n`/financial-toolkit` - Financial tools & calculators (UK)\n`/compliance-toolkit` - Legal & regulatory compliance\n`/hr-toolkit` - Human resources management\n`/operations-toolkit` - Operational excellence tools\n`/strategy-toolkit` - Strategic planning frameworks',
+      inline: false
+    });
+
     // Advisor Commands
     if (userTier >= 1) {
       embed.addFields({
