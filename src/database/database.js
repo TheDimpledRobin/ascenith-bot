@@ -53,6 +53,13 @@ class DatabaseManager {
       )
     `);
 
+    // Migration: Add status column if it doesn't exist (for old databases)
+    try {
+      this.db.exec(`ALTER TABLE tickets ADD COLUMN status TEXT DEFAULT 'open'`);
+    } catch (err) {
+      // Column already exists, ignore error
+    }
+
     // Moderation logs table
     this.db.exec(`
       CREATE TABLE IF NOT EXISTS mod_logs (

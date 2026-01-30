@@ -1,11 +1,49 @@
 # Ascenith Business Advisory Bot - Setup Guide
 
+## 🚀 Quick Start - Digital Ocean Deployment
+
+**For deploying directly to Digital Ocean Droplet, skip to [Digital Ocean Droplet Deployment](#digital-ocean-droplet-deployment) section.**
+
+**Deployment Options:**
+1. **GitHub → Droplet** (Recommended) - Push to GitHub, then clone on server
+2. **FileZilla → Droplet** - Direct upload via SFTP with GUI
+3. **Local Development** - Test on your computer first
+
+---
+
 ## Prerequisites
 
-- Node.js v16.9.0 or higher
+### For Local Development:
+- Node.js v16.9.0 or higher (v18.x LTS recommended)
 - Discord Bot Token
 - Discord Application Client ID
 - Administrator access to your Discord server
+
+### For Digital Ocean Deployment:
+- Digital Ocean account
+- Discord Bot Token and Client ID
+- SSH client (PuTTY, Windows Terminal, or built-in terminal)
+- *Optional:* FileZilla for GUI file uploads
+- *Optional:* GitHub account for version control
+
+---
+
+## 📋 Table of Contents
+
+1. [Discord Application Setup](#1-discord-application-setup)
+2. [Local Bot Installation (Optional)](#2-bot-installation)
+3. [Digital Ocean Droplet Deployment](#digital-ocean-droplet-deployment)
+   - [Droplet Prerequisites](#droplet-prerequisites)
+   - [Initial Server Setup](#2-initial-server-setup)
+   - [File Upload Methods](#5-deploy-bot-files)
+     - [GitHub (Recommended)](#option-a-using-git-with-personal-access-token-recommended)
+     - [FileZilla GUI](#option-c-using-filezilla-sftp---manual-upload)
+   - [Auto-Start Configuration](#8-start-bot-with-pm2)
+4. [Bot Configuration](#3-configuration)
+5. [Troubleshooting](#troubleshooting)
+6. [Maintenance and Updates](#monitoring-and-maintenance)
+
+---
 
 ## Step-by-Step Setup
 
@@ -146,6 +184,33 @@ After setup, assign roles to your team members:
 - Wait a few minutes (global commands can take up to 1 hour)
 - Use GUILD_ID in .env for instant testing
 - Redeploy commands with `node src/deploy-commands.js`
+
+### Ticket command errors ("no such column" error)
+This happens when the database exists with an old schema. **Solutions:**
+
+**Option 1: Delete and recreate database (loses all data)**
+```bash
+# On droplet
+rm ~/ascenith-bot/data/ascenith.db
+pm2 restart ascenith-bot
+
+# On local machine (PowerShell)
+Remove-Item data\ascenith.db
+npm start
+```
+
+**Option 2: Manual migration (preserves data)**
+```bash
+# On droplet
+cd ~/ascenith-bot
+sqlite3 data/ascenith.db "ALTER TABLE tickets ADD COLUMN status TEXT DEFAULT 'open';"
+pm2 restart ascenith-bot
+
+# On local machine (PowerShell) - requires sqlite3
+# Install sqlite3 first or use Option 1
+```
+
+After fixing, run `/setup` command in Discord again.
 
 ## Support
 
@@ -458,20 +523,120 @@ cd ascenith-bot
 npm install
 ```
 
-**Option C: Using SCP/SFTP (Manual Upload)**
+**Option C: Using FileZilla (SFTP) - Manual Upload**
 
-From your local machine:
+FileZilla is a user-friendly FTP/SFTP client with a graphical interface, perfect for those who prefer not to use command-line tools.
+
+**Install FileZilla:**
+- Download from [FileZilla-project.org](https://filezilla-project.org/)
+- Install the **FileZilla Client** (not Server)
+
+**Connect to Your Droplet:**
+
+1. Open FileZilla
+2. Go to File → Site Manager → New Site
+3. **Connection Settings:**
+   - **Protocol:** SFTP - SSH File Transfer Protocol
+   - **Host:** your_droplet_ip (e.g., 192.168.1.100)
+   - **Port:** 22
+   - **Logon Type:** Key file (if using SSH key) or Normal (if using password)
+   - **User:** ascenith (or root)
+   - **Key file:** Browse to your private SSH key (e.g., `C:\Users\YourName\.ssh\id_rsa`) if using key authentication
+   - **Password:** Your password (if using password authentication)
+
+4. Click "Connect"
+
+**Upload Bot Files:**
+
+1. **Left Panel:** Navigate to your local project folder
+   - Example: `C:\Users\beaus\Desktop\test`
+
+2. **Right Panel:** Navigate to the home directory on the droplet
+   - Should show `/home/ascenith/` or `/root/`
+
+3. **Important - Create folder on server:**
+   - Right-click in the right panel → Create directory → Name it `ascenith-bot`
+   - Navigate into this folder
+
+4. **Upload files:**
+   - Select ALL files/folders in left panel (EXCEPT `node_modules` folder)
+   - Right-click → Upload
+   - Wait for transfer to complete
+
+5. **Files to upload:**
+   - ✅ `src/` folder
+   - ✅ `package.json`
+   - ✅ `package-lock.json`
+   - ✅ `README.md`
+   - ✅ `SETUP_GUIDE.md`
+   - ❌ `node_modules/` (DO NOT upload - too large and unnecessary)
+   - ❌ `.env` (DO NOT upload - contains secrets)
+   - ❌ `data/` (optional - only if you want to transfer existing database)
+
+**After Upload via FileZilla:**
+
+Connect via SSH to complete setup:
 
 ```bash
-# Zip your project
-tar -czf ascenith-bot.tar.gz /path/to/your/project
-
-# Upload to droplet
-scp ascenith-bot.tar.gz ascenith@your_droplet_ip:~/
-
-# On the droplet, extract
 ssh ascenith@your_droplet_ip
-tar -xzf ascenith-bot.tar.gz
+cd ascenith-bot
+
+# Install dependencies
+npm install
+
+# Create .env file
+nano .env
+# Paste your environment variables, save with CTRL+X, Y, Enter
+
+# Deploy commands
+node src/deploy-commands.js
+
+# Start with PM2
+pm2 start src/index.js --name ascenith-bot
+pm2 save
+```
+
+**Updating Bot via FileZilla:**
+
+1. Make changes to your local files
+2. Connect to droplet in FileZilla
+3. Navigate to `ascenith-bot` folder on server
+4. Select changed files from left panel
+5. Right-click → Upload (choose "Overwrite" when prompted)
+6. SSH into server and restart bot:
+   ```bash
+   ssh ascenith@your_droplet_ip
+   pm2 restart ascenith-bot
+   ```
+
+**FileZilla Tips:**
+
+- **Transfer Queue:** Bottom panel shows upload progress
+- **Failed Transfers:** Red items in queue - check permissions
+- **Edit Remote Files:** Right-click file on server → View/Edit (opens in local editor)
+- **Synchronize:** Tools → Directory Comparison (shows differences between local/remote)
+- **Bookmarks:** Add frequently accessed folders to Quick Connect bar
+
+**Option D: Using SCP (Command Line Alternative)**
+
+From your local Windows machine (PowerShell):
+
+```powershell
+# Zip your project (exclude node_modules)
+Compress-Archive -Path "C:\Users\beaus\Desktop\test\src", "C:\Users\beaus\Desktop\test\package.json", "C:\Users\beaus\Desktop\test\README.md" -DestinationPath "ascenith-bot.zip"
+
+# Upload to droplet using SCP (requires SSH client)
+scp ascenith-bot.zip ascenith@your_droplet_ip:~/
+```
+
+On the droplet:
+
+```bash
+# Install unzip if needed
+sudo apt install unzip
+
+# Extract
+unzip ascenith-bot.zip -d ascenith-bot
 cd ascenith-bot
 npm install
 ```
@@ -653,6 +818,118 @@ node src/index.js      # Run directly to see errors
 - Consider implementing Redis for caching
 - Use PostgreSQL instead of SQLite for better concurrency
 - Set up load monitoring alerts
+
+---
+
+## 🔄 Summary: Bot Auto-Start Setup
+
+Your bot will automatically start when the server boots thanks to PM2 configuration:
+
+**What Makes It Work:**
+
+1. **PM2 Process Manager** - Keeps bot running continuously
+   ```bash
+   pm2 start src/index.js --name ascenith-bot
+   ```
+
+2. **Startup Script** - PM2 registers with system init
+   ```bash
+   pm2 startup
+   pm2 save
+   ```
+
+3. **Process Persistence** - Saved configuration at `~/.pm2/`
+
+**Verify Auto-Start:**
+
+```bash
+# Reboot server
+sudo reboot
+
+# After reboot, reconnect and check
+ssh ascenith@your_droplet_ip
+pm2 status
+# Bot should show 'online' status
+```
+
+**What Happens When:**
+- ✅ **Server Reboots** → PM2 automatically starts → Bot comes online
+- ✅ **Bot Crashes** → PM2 automatically restarts it
+- ✅ **Network Issues** → Bot reconnects to Discord automatically
+- ✅ **Updates Applied** → `pm2 restart ascenith-bot` to apply changes
+
+**Manual Control:**
+```bash
+pm2 start ascenith-bot    # Start bot
+pm2 stop ascenith-bot     # Stop bot
+pm2 restart ascenith-bot  # Restart bot
+pm2 delete ascenith-bot   # Remove from PM2 (doesn't delete files)
+```
+
+---
+
+## 📊 Deployment Comparison
+
+| Method | Difficulty | Speed | Best For |
+|--------|-----------|-------|----------|
+| **GitHub → Droplet** | Medium | Fast | Version control, team projects, easy updates |
+| **FileZilla SFTP** | Easy | Medium | Beginners, visual interface, one-time deployment |
+| **Local Development** | Easy | N/A | Testing before deployment |
+
+**Recommendation:** Use GitHub for initial deployment and updates. Use FileZilla for quick config file edits or manual patches.
+
+---
+
+## 🔐 Critical Security Reminders
+
+1. **Never commit `.env` to Git** - Contains sensitive tokens
+2. **Use SSH keys over passwords** - More secure authentication
+3. **Keep packages updated** - Run `npm audit fix` regularly
+4. **Backup database weekly** - Prevent data loss
+5. **Monitor PM2 logs** - Catch issues early
+6. **Restrict root SSH** - Use non-root user for operations
+
+---
+
+## 📞 Quick Command Reference
+
+**On Local Machine (Windows):**
+```powershell
+# Push to GitHub
+git add .
+git commit -m "Update bot"
+git push
+
+# Upload via FileZilla (use GUI)
+# Host: your_droplet_ip, Port: 22, Protocol: SFTP
+```
+
+**On Digital Ocean Droplet (Ubuntu):**
+```bash
+# Update bot from GitHub
+cd ~/ascenith-bot
+git pull
+npm install
+pm2 restart ascenith-bot
+
+# Check status
+pm2 status
+pm2 logs ascenith-bot --lines 50
+
+# System maintenance
+sudo apt update && sudo apt upgrade -y
+```
+
+---
+
+## Support
+
+For issues or questions about the bot:
+1. Check this documentation
+2. Review error messages: `pm2 logs ascenith-bot`
+3. Verify environment variables: `cat ~/ascenith-bot/.env` (on droplet)
+4. Test locally before deploying: `npm start` (on local machine)
+5. Contact the development team
 
 ---
 © 2026 Ascenith Business Advisory

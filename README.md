@@ -2,6 +2,22 @@
 
 Exclusive Discord bot for Ascenith Business Advisory & Consulting with comprehensive moderation, advisory tools, ticketing, and consultant utilities.
 
+## 🚀 Quick Deploy to Digital Ocean
+
+**Ready to deploy?** Follow the comprehensive guide:
+
+1. **[SETUP_GUIDE.md](SETUP_GUIDE.md)** - Full deployment instructions for Digital Ocean
+2. **[DEPLOYMENT_CHECKLIST.md](DEPLOYMENT_CHECKLIST.md)** - Step-by-step checklist
+
+**Deployment Methods:**
+- ✅ **GitHub → Droplet** (Recommended for updates)
+- ✅ **FileZilla SFTP** (Easy GUI upload)
+- ✅ **Local Development** (Test first)
+
+**Auto-Start:** Bot automatically starts when server reboots using PM2.
+
+---
+
 ## Features
 
 - 🛡️ **Moderation System** - Complete moderation suite with warnings, kicks, bans, and timeouts
@@ -13,6 +29,8 @@ Exclusive Discord bot for Ascenith Business Advisory & Consulting with comprehen
 - ⚙️ **Setup Wizard** - Easy initial configuration for server owners
 
 ## Installation
+
+### Local Development
 
 1. Clone this repository
 2. Install dependencies:
@@ -34,6 +52,16 @@ Exclusive Discord bot for Ascenith Business Advisory & Consulting with comprehen
    ```bash
    npm run dev
    ```
+
+### Digital Ocean Deployment
+
+See **[SETUP_GUIDE.md](SETUP_GUIDE.md)** for complete deployment instructions including:
+- Droplet setup and configuration
+- Node.js and PM2 installation
+- File upload via GitHub or FileZilla
+- Auto-start on server reboot
+- Security best practices
+- Maintenance and monitoring
 
 ## Initial Setup
 
@@ -72,6 +100,21 @@ Exclusive Discord bot for Ascenith Business Advisory & Consulting with comprehen
 - `/client-status` - Check client status
 - `/schedule` - Schedule management
 - `/notes` - Client notes management
+
+## 📚 Documentation
+
+- **[SETUP_GUIDE.md](SETUP_GUIDE.md)** - Complete setup and deployment guide for Digital Ocean
+- **[DEPLOYMENT_CHECKLIST.md](DEPLOYMENT_CHECKLIST.md)** - Step-by-step deployment verification
+- **[QUICK_REFERENCE.md](QUICK_REFERENCE.md)** - Quick command reference for daily operations
+- **[update-bot.sh](update-bot.sh)** - Automated update script for the droplet
+
+## 🔧 Tech Stack
+
+- **Runtime:** Node.js 18.x LTS
+- **Framework:** Discord.js v14
+- **Database:** SQLite3 (better-sqlite3)
+- **Process Manager:** PM2 (for production)
+- **Environment:** dotenv
 
 ## Support
 
