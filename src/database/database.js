@@ -160,12 +160,12 @@ class DatabaseManager {
   }
 
   getTicket(channelId) {
-    const stmt = this.db.prepare('SELECT * FROM tickets WHERE channel_id = ? AND status = "open"');
+    const stmt = this.db.prepare("SELECT * FROM tickets WHERE channel_id = ? AND status = 'open'");
     return stmt.get(channelId);
   }
 
   getUserTickets(guildId, userId) {
-    const stmt = this.db.prepare('SELECT * FROM tickets WHERE guild_id = ? AND user_id = ? AND status = "open"');
+    const stmt = this.db.prepare("SELECT * FROM tickets WHERE guild_id = ? AND user_id = ? AND status = 'open'");
     return stmt.all(guildId, userId);
   }
 
